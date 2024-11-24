@@ -1,0 +1,192 @@
+#pragma version 10
+
+smart_contracts.anaysmartcontract.contract.anaysmartcontract.approval_program:
+    intcblock 0 1 1000
+    bytecblock "creator_address" "total_entries" "entry_fee"
+    callsub __puya_arc4_router__
+    return
+
+
+// smart_contracts.anaysmartcontract.contract.anaysmartcontract.__puya_arc4_router__() -> uint64:
+__puya_arc4_router__:
+    proto 0 1
+    txn NumAppArgs
+    bz __puya_arc4_router___after_if_else@9
+    pushbytess 0xa03b81d2 0x87ea49d7 0xbe0bdebf 0x33b3499e // method "create_application(uint64)void", method "enter_lottery(pay)void", method "pick_winner()void", method "delete_application()void"
+    txna ApplicationArgs 0
+    match __puya_arc4_router___create_application_route@2 __puya_arc4_router___enter_lottery_route@3 __puya_arc4_router___pick_winner_route@4 __puya_arc4_router___delete_application_route@5
+    intc_0 // 0
+    retsub
+
+__puya_arc4_router___create_application_route@2:
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    !
+    assert // can only call when creating
+    txna ApplicationArgs 1
+    btoi
+    callsub create_application
+    intc_1 // 1
+    retsub
+
+__puya_arc4_router___enter_lottery_route@3:
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    txn GroupIndex
+    intc_1 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_1 // pay
+    ==
+    assert // transaction type is pay
+    callsub enter_lottery
+    intc_1 // 1
+    retsub
+
+__puya_arc4_router___pick_winner_route@4:
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    callsub pick_winner
+    intc_1 // 1
+    retsub
+
+__puya_arc4_router___delete_application_route@5:
+    txn OnCompletion
+    pushint 5 // DeleteApplication
+    ==
+    assert // OnCompletion is not DeleteApplication
+    txn ApplicationID
+    assert // can only call when not creating
+    callsub delete_application
+    intc_1 // 1
+    retsub
+
+__puya_arc4_router___after_if_else@9:
+    intc_0 // 0
+    retsub
+
+
+// smart_contracts.anaysmartcontract.contract.anaysmartcontract.create_application(entry_fee: uint64) -> void:
+create_application:
+    proto 1 0
+    bytec_2 // "entry_fee"
+    frame_dig -1
+    app_global_put
+    bytec_0 // "creator_address"
+    global CreatorAddress
+    app_global_put
+    bytec_1 // "total_entries"
+    intc_0 // 0
+    app_global_put
+    retsub
+
+
+// smart_contracts.anaysmartcontract.contract.anaysmartcontract.enter_lottery(payment_txn: uint64) -> void:
+enter_lottery:
+    proto 1 0
+    frame_dig -1
+    gtxns Receiver
+    global CurrentApplicationAddress
+    ==
+    assert
+    frame_dig -1
+    gtxns Amount
+    intc_0 // 0
+    bytec_2 // "entry_fee"
+    app_global_get_ex
+    assert // check self.entry_fee exists
+    ==
+    assert
+    intc_0 // 0
+    bytec_1 // "total_entries"
+    app_global_get_ex
+    assert // check self.total_entries exists
+    intc_1 // 1
+    +
+    bytec_1 // "total_entries"
+    swap
+    app_global_put
+    retsub
+
+
+// smart_contracts.anaysmartcontract.contract.anaysmartcontract.pick_winner() -> void:
+pick_winner:
+    proto 0 0
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "creator_address"
+    app_global_get_ex
+    assert // check self.creator_address exists
+    ==
+    assert
+    intc_0 // 0
+    bytec_1 // "total_entries"
+    app_global_get_ex
+    assert // check self.total_entries exists
+    assert
+    global Round
+    global GroupSize
+    intc_0 // 0
+    bytec_1 // "total_entries"
+    app_global_get_ex
+    assert // check self.total_entries exists
+    uncover 2
+    swap
+    %
+    swap
+    %
+    gtxns Sender
+    itxn_begin
+    global CurrentApplicationAddress
+    acct_params_get AcctBalance
+    assert // account funded
+    pushint 1000000 // 1000000
+    -
+    itxn_field Amount
+    itxn_field Receiver
+    intc_1 // pay
+    itxn_field TypeEnum
+    intc_2 // 1000
+    itxn_field Fee
+    itxn_submit
+    retsub
+
+
+// smart_contracts.anaysmartcontract.contract.anaysmartcontract.delete_application() -> void:
+delete_application:
+    proto 0 0
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "creator_address"
+    app_global_get_ex
+    assert // check self.creator_address exists
+    ==
+    assert
+    itxn_begin
+    intc_0 // 0
+    bytec_0 // "creator_address"
+    app_global_get_ex
+    assert // check self.creator_address exists
+    intc_0 // 0
+    bytec_0 // "creator_address"
+    app_global_get_ex
+    assert // check self.creator_address exists
+    itxn_field CloseRemainderTo
+    intc_0 // 0
+    itxn_field Amount
+    itxn_field Receiver
+    intc_1 // pay
+    itxn_field TypeEnum
+    intc_2 // 1000
+    itxn_field Fee
+    itxn_submit
+    retsub

@@ -1,0 +1,10 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 1.3.4
+_src_path: gh:algorandfoundation/algokit-python-template
+author_email: anayverma2147@gmail.com
+author_name: Anayverma
+contract_name: anaysmartcontract
+deployment_language: python
+preset_name: production
+project_name: anayproject
+
